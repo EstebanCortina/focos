@@ -1,12 +1,21 @@
-#define pinPorfi 2
-
+#define pinsensor A0
+#define pinrelat 8
+int valor;
 void setup(){
-    Serial.begin(9600);
-    pinMode(pinPorfi, INPUT);
+  Serial.begin(9600);
+  pinMode(pinsensor,INPUT);
+  pinMode(pinrelat,OUTPUT);
 }
-
 void loop(){
-    int valor=digitalRead(pinPorfi);
-    Serial.println(valor);
-    delay(250);
+  valor = analogRead(pinsensor);
+  Serial.println(valor);
+  if(valor < 100){
+    digitalWrite(pinrelat,HIGH);
+    Serial.println("Humo detectado");
+    delay(1000);
+  } else{
+    Serial.println("Humo no detectado");
+    digitalWrite(pinrelat,LOW);  
+  }
+  delay(100);
 }
