@@ -1,37 +1,26 @@
 #include <Wire.h>
 #include <BH1750.h>
 
-#define RELE 2;
-#define LumenSensor 4;
-
-//BH1750 measureLight; //Esto es un objeto
-
-int nightLvl = 50;
-//int dayLvl = 100;
+BH1750 lightSensor;
+const int RELE = 13;
 
 void setup() {
   Serial.begin(9600);
-  LumenSensor.begin(BH1750_CONTINUOUS_HIGH_RES_MODE);
-  //measureLight.setMode();
+  lightSensor.begin();
   pinMode(RELE, OUTPUT);
-  pinmode(LumenSensor, INPUT);
-}
+} 
 
 void loop() {
-  uint16_t lux = LumenSensor.readLightLevel();
-  Serial.print("El nivel de luz es: ");
+  uint16_t lux = lightSensor.readLightLevel();
+  Serial.print("Luminosidad: ");
   Serial.print(lux);
-  Serial.print("lux. ");
-  //delay(1000);
+  Serial.println(" lux");
 
-  if (lux > nightLvl){
+  if (lux > 200) {
+    digitalWrite(RELE, HIGH);
+  } else {
     digitalWrite(RELE, LOW);
-    Serial.println("Foco Apagado.");
-  } else{
-    if (lux < nightLvl){
-      digitalWrite(RELE, HIGH);
-      Serial.println("Foco Encendido.");
-    }
   }
-  delay(2000);
+
+  delay(100);
 }
