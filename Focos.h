@@ -130,17 +130,17 @@ void Focos::flamaListen()
   {
   case 0:
     Serial.println("Peligro fuego");
-    client.publish("datosFocoEsli", "Peligro Fuego");
+    client.publish("esliTest/Flama", "Peligro Fuego");
     // Encender el foco
     digitalWrite(focoFlama, HIGH);
     break;
   case 1 || 2:
     Serial.println("Fuego lejano");
-    client.publish("datosFocoEsli", "Fuego lejano");
+    client.publish("esliTest/Flama", "Peligro Fuego");
     break;
   case 3:
     Serial.println("No hay fuego");
-    client.publish("datosFocoEsli", "No hay fuego");
+    client.publish("esliTest/Flama", "Peligro Fuego");
     digitalWrite(focoFlama, LOW);
     break;
   }
@@ -161,11 +161,13 @@ void Focos::humoListen()
   {
     digitalWrite(focoHumo, HIGH);
     Serial.println("Humo detectado");
+    client.publish("esliTest/Humo", "Humo detectado");
   }
   else
   {
-    Serial.println("Humo no detectado");
     digitalWrite(focoHumo, LOW);
+    Serial.println("Humo no detectado");
+    client.publish("esliTest/Humo", "Humo no detectado");
   }
 }
 void Focos::luxoSetup()
@@ -190,6 +192,7 @@ void Focos::luxoListen()
     Serial.print(this->lux);
     Serial.println(" lux");
     digitalWrite(focoLuxometro, LOW);
+    client.publish('esliTest/LuzAmbiental', "Es de dia");
   }
   else
   {
@@ -197,5 +200,6 @@ void Focos::luxoListen()
     Serial.print(this->lux);
     Serial.println(" lux");
     digitalWrite(focoLuxometro, HIGH);
+    client.publish('esliTest/LuzAmbiental', "Es de noche");
   }
 }
