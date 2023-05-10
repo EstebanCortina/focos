@@ -1,0 +1,34 @@
+	DOCUMENTACION PRACTICA 1 ESLI 4 FOCOS
+
+
+ - COLORES CABLES -
+	VCC(Rojos)
+	GND(negros)
+	Datos de sensor al ESP32(Amarillos)
+	Salidas a focos(Naranjas)
+
+ - PINES -
+
+Luxometro(Samuel)
+	G21(SDA)
+	G22(SCL)
+	G33(salida a foco)
+*Nota: Este sensor necesita la libreria BH1750 y Wire.h para la comunicacion IC2. Checar que se inicie el ligthMeter.begin() y el Wire.begin().
+
+
+Sensor de humo MQ6(Porfirio)
+	G34(digitalOutput)
+	G25(salida a foco)
+*Nota: Segun ChatGPT cuado se usa DO, pues te da 1 o 0. Si pasa de un umbral de detenccion manda un HIGH (1) caso contrario esta en LOW(0), pero al probarlo, cuando no detecta, manda un 1, y cuando si detecta manda un 0, asi que inverti el valor que ingresa al ESP32. ("!valor")
+
+Sensor de Flama(Isaac)
+	G35(digitalOutput)
+	G26(salida a foco)
+*Nota: Se leen valores analogicamente. El minimo es 0 y el maximo es 4095. La funcion map(), lo que hace es que tu le pasas una lectura, despues le indicas el minimo, el maximo y despues
+
+Sensor con protocolo MQTT(Esteban)
+	El input viene de: https://focomqtt.onrender.com/ (Es un sevidor Express)
+	G27(salida a foco)
+*Nota: El protocolo MQTT es como HTTP pero mas ligero. El foco usa un broker gratuito llamado "mosquitto" el cual funciona usando la libreria PubSubClient.h en el ESP32 y con el paquete mqtt en nodeJS. La aplicacion tiene un boton para cuando se presione, se mande un publish. El esp32 esta suscrito al topic focoEsli. Recibe el msj y hace el digitalWrite.
+
+	
