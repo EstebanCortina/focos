@@ -1,0 +1,154 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8f8f8;
+}
+
+.lightbulb-container {
+  position: relative;
+  width: 200px;
+  height: 300px;
+  margin-bottom: 40px;
+}
+
+.lightbulb {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../focoPrendido.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom 21px;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-name: lightbulbOff;
+  animation-fill-mode: forwards;
+  margin: 0 auto;
+  animation: light-on 1s ease forwards;
+
+}
+
+@keyframes lightbulbOn {
+  0% {
+    background-image: url("../focoPrendido.png");
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes lightbulbOff {
+  0% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    background-image: url("../focoApagado.png");
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.light {
+  position: absolute;
+  top: 30%;
+  left: 25%;
+  width: 50%;
+  height: 40%;
+  background-color: #FFF9C4;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 10px #FFF9C4;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-name: lightOff;
+  animation-fill-mode: forwards;
+}
+
+@keyframes lightOn {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes lightOff {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 40px;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 20px;
+  transition: all 0.2s ease-in-out;
+  z-index: 1;
+}
+
+.button-container:hover {
+  background-color: #d1d1d1;
+  padding: 10px 20px;
+}
+
+.button-container:active {
+  transform: scale(0.95);
+  padding: 10px 20px;
+}
+
+.button-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  text-transform: uppercase;
+  z-index: 2;
+  text-align: center;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.bg-light {
+  background-color: #f8f8f8;
+}
+
+.bg-dark {
+  background-color: #333;
+}
