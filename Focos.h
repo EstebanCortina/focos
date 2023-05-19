@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <BH1750.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 
 // Rangos para sensor de Flama
@@ -19,12 +20,13 @@
 BH1750 lightMeter;
 bool ledState = false;
 
+// Configuracion del servidor MQTT (Mosquitto Broker publico)
 const char *mqtt_server = "test.mosquitto.org";
 String palabra;
 const int mqtt_port = 1883;
 
 // Este cliente es de la libreria MultiWifi.h
-MultiWiFiClient espClient;
+WiFiClient espClient;
 // Este cliente es para el MQTT
 PubSubClient client(espClient);
 
@@ -98,18 +100,6 @@ void mqttListen()
   client.loop();
 }
 
-void mqttSetup()
-{
-  pinMode(focoMqtt, OUTPUT);
-  WiFi.begin("E6CA82", "L215037353121439");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-  }
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-}
-
 // FLAMA
 int Focos::flamaListen()
 {
@@ -151,13 +141,11 @@ int Focos::humoListen()
   {
     digitalWrite(focoHumo, HIGH);
     Serial.println("Humo detectado");
-    client.publish("esliTest/Humo", "Humo detectado");
   }
   else
   {
     digitalWrite(focoHumo, LOW);
     Serial.println("Humo no detectado");
-    client.publish("esliTest/Humo", "Humo no detectado");
   }
   return this->valorHumo;
 }
@@ -185,7 +173,6 @@ int Focos::luxoListen()
     Serial.print(this->lux);
     Serial.println(" lux");
     digitalWrite(focoLuxometro, LOW);
-    client.publish('esliTest/LuzAmbiental', "Es de dia");
   }
   else
   {
@@ -193,7 +180,6 @@ int Focos::luxoListen()
     Serial.print(this->lux);
     Serial.println(" lux");
     digitalWrite(focoLuxometro, HIGH);
-    client.publish('esliTest/LuzAmbiental', "Es de noche");
   }
   return this->lux;
 }

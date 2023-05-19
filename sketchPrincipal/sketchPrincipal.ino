@@ -28,82 +28,68 @@ void setup()
   pinMode(focoMqtt, OUTPUT);
 
   // WifiMulti aun no esta probado.
-  wifiMulti.addAP("NEPOMUCENO", "sambs0279");
+  wifiMulti.addAP("E6CA82", "L21503735312143");
   wifiMulti.addAP("nombre_de_la_red_2", "contraseña_2");
 
   Serial.print("Conectando a la red WiFi...");
 
-  while (wifiMulti.run() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(500);
-  }
+  connectToWiFi();
 
-  Serial.println();
-  Serial.print("Conexión WiFi establecida. Dirección IP: ");
-  Serial.println(WiFi.localIP());
-
-  // Single wifi
-  WiFi.begin("NEPOMUCENO", "sambs0279");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-  }
-
-  // Asignar servidor y asignar la funcion de callback para MQTT
+  // Asignar servidor y asignar la funcion de callback para MQTT.
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
+  // Setup de los sensores.
   f.luxoSetup();
-  f.humoSetup();
-  f.flamaSetup();
+  // f.humoSetup();
+  // f.flamaSetup();
 }
 
 void loop()
 {
+
+  mqttListen();
+
   luxValue = f.luxoListen();
   delay(100);
+
+  // TODO ESTO SERA UN NUEVO METODO DE LA LIBRERIA Focos.h
+  sensData["lux"] = luxValue;
+
+  serializeJson(sensData, sensDataJson);
+  client.publish("esliPrueba", sensDataJson.c_str());
+
+  // ESTA VARIABLE DEBE SER LOCAL DEL NUEVO METODO
+  sensDataJson = "";
+  // TERMINA BLOQUE DE NUEVO METODO
+
+  /*
   humoValue = f.humoListen();
   delay(100);
   flamaValue = f.flamaListen();
   delay(100);
-  mqttListen();
-  delay(1000);
+  */
 
-  // Cambiar para reconectar MultiWifi
+  delay(2000);
+
   if (WiFi.status() != WL_CONNECTED)
   {
-    // Reintentar la conexión
-    WiFi.begin("E6CA82", "L21503735312143");
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      delay(1000);
-    }
+    Serial.println("Conexión WiFi perdida. Intentando reconectar...");
+    connectToWiFi();
   }
 }
 
-void reconnect()
+void connectToWiFi()
 {
-  // Loop hasta que estemos conectados
-  while (!client.connected())
+  while (wifiMulti.run() != WL_CONNECTED)
   {
-    Serial.print("Conectando al servidor MQTT...");
+    Serial.print("Conectando a ");
+    Serial.println(WiFi.SSID());
 
-    // Intenta conectarse
-    if (client.connect(mqtt_server))
-    {
-      Serial.println("conectado");
-
-      // Suscribirse a un tema
-      client.subscribe("focoEsli");
-    }
-    else
-    {
-      Serial.print("fallo, rc=");
-      Serial.print(client.state());
-      Serial.println(" esperando 5 segundos antes de volver a intentar");
-      // Espera 5 segundos antes de intentar nuevamente
-      delay(5000);
-    }
+    delay(1000);
   }
+
+  Serial.println("Conectado a WiFi");
+  Serial.print("Dirección IP: ");
+  Serial.println(WiFi.localIP());
 }
