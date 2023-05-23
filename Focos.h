@@ -2,6 +2,7 @@
 #include <BH1750.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 // Rangos para sensor de Flama
 #define sensorMin 0
@@ -29,42 +30,86 @@ const int mqtt_port = 1883;
 WiFiClient espClient;
 // Este cliente es para el MQTT
 PubSubClient client(espClient);
-
+DynamicJsonDocument doc(200);
+JsonArray jsonArray = doc.to<JsonArray>();
 // Configuracion Mqtt
 class Focos
 {
+private:
+  JsonObject luxData = doc.createNestedObject();
+  JsonObject flamaData = doc.createNestedObject();
+
 public:
   // Mqtt
   void mqttSetup();
   void mqttListen();
   void reconnectMqtt();
+  bool mqttFocoEstado;
 
   //  Luxometro
   void luxoSetup();
-  int luxoListen();
+  void luxoListen();
   uint16_t lux;
+  bool luxFocoEstado;
   // Humo
   void humoSetup();
   int humoListen();
   int valorHumo;
+  bool humoFocoEstado;
   // Flama
   void flamaSetup();
-  int flamaListen();
+  void flamaListen();
   int valorFlama;
   int range;
+  bool flamaFocoEstado;
 };
 void callback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print("Mensaje recibido [");
-  Serial.print(topic);
-  Serial.print("] ");
+  String mensaje;
+  String topicString = String(topic);
 
+  /*
+    Serial.print("Mensaje recibido [");
+    Serial.print(topic);
+    Serial.print("] ");
+    */
   for (int i = 0; i < length; i++)
   {
-    Serial.print((char)payload[i]);
+    mensaje += (char)payload[i];
   }
+  Serial.println(mensaje);
+
+  if (topicString == "focoEsli/foco1")
+  {
+    Serial.println("foco1");
+  }
+  else if (topicString == "focoEsli/foco2")
+  {
+    Serial.println("foco2");
+  }
+  else if (topicString == "focoEsli/foco3")
+  {
+    Serial.println("foco3");
+  }
+  else if (topicString == "focoEsli/foco4")
+  {
+    Serial.println("foco4");
+  }
+  else if (topicString == "focoEsli/foco5")
+  {
+    Serial.println("foco5");
+  }
+  mensaje = "";
+  /*
+  for (int i = 0; i < length; i++)
+    {
+      Serial.print((char)payload[i]);
+    }
+
+
   ledState = !ledState;
-  digitalWrite(focoMqtt, ledState);
+  digitalWrite(focoMqtt, ledState);\
+  */
 }
 void reconnectMqtt()
 {
@@ -78,7 +123,7 @@ void reconnectMqtt()
       Serial.println("conectado");
 
       // Suscribirse a un tema
-      client.subscribe("focoEsli");
+      client.subscribe("focoEsli/#");
     }
     else
     {
@@ -101,27 +146,38 @@ void mqttListen()
 }
 
 // FLAMA
-int Focos::flamaListen()
+void Focos::flamaListen()
 {
+
   this->valorFlama = analogRead(inputFlama);
+  Serial.println(this->valorFlama);
+
   this->range = map(this->valorFlama, sensorMin, sensorMax, 0, 4);
+  Serial.println(this->range);
   // Serial.println(sensorReading);
+  // La sensibilidad del sensor esta muy alta, hay que bajarla y cambiar los valores del range.
   switch (this->range)
   {
   case 0:
-    Serial.println("Peligro fuego");
-    // Encender el foco
-    digitalWrite(focoFlama, HIGH);
+    Serial.println("Fuego");
+    this->flamaFocoEstado = true;
+    digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   case 1 || 2:
     Serial.println("Fuego lejano");
+    this->flamaFocoEstado = false;
+    digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   case 3:
     Serial.println("No hay fuego");
-    digitalWrite(focoFlama, LOW);
+    // Encender el foco
+    this->flamaFocoEstado = false;
+    digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   }
-  return this->range;
+  this->flamaData["name"] = "flama";
+  this->flamaData["value"] = this->range;
+  this->flamaData["state"] = this->flamaFocoEstado;
 }
 void Focos::flamaSetup()
 {
@@ -136,6 +192,7 @@ void Focos::humoSetup()
 }
 int Focos::humoListen()
 {
+
   this->valorHumo = analogRead(inputHumo);
   if (this->valorHumo < 100)
   {
@@ -153,6 +210,7 @@ int Focos::humoListen()
 // Luxometro
 void Focos::luxoSetup()
 {
+
   Wire.begin();
   if (lightMeter.begin())
   {
@@ -164,22 +222,27 @@ void Focos::luxoSetup()
   }
   pinMode(focoLuxometro, OUTPUT);
 }
-int Focos::luxoListen()
+void Focos::luxoListen()
 {
   this->lux = lightMeter.readLightLevel();
-  if (this->lux > 200)
+  if (this->lux > 100)
   {
     Serial.print("Luminosidad: ");
     Serial.print(this->lux);
     Serial.println(" lux");
-    digitalWrite(focoLuxometro, LOW);
+    luxFocoEstado = false;
+    digitalWrite(focoLuxometro, luxFocoEstado);
   }
   else
   {
     Serial.print("Luminosidad: ");
     Serial.print(this->lux);
     Serial.println(" lux");
-    digitalWrite(focoLuxometro, HIGH);
+    this->luxFocoEstado = true;
+    digitalWrite(focoLuxometro, this->luxFocoEstado);
   }
-  return this->lux;
+
+  this->luxData["name"] = "lux";
+  this->luxData["value"] = this->lux;
+  this->luxData["state"] = this->luxFocoEstado;
 }

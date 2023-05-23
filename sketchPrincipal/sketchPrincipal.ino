@@ -1,18 +1,17 @@
 #include "Focos.h"
 #include <WiFiMulti.h>
-#include <ArduinoJson.h>
+#include <vector>
+#include <string>
 
 WiFiMulti wifiMulti;
 
 // Este objeto es donde se asignaran los valores de los sensores.
-StaticJsonDocument<200> sensData;
-// En este String es donde se guardara el objeto anterior serializado.
-String sensDataJson;
 
+// En este String es donde se guardara el objeto anterior serializado.
+
+String dataJson;
 // Estas variables contienen los datos de los sensores
 int humoValue;
-int luxValue;
-int flamaValue;
 
 // Estas variables contienen el estado del foco.
 int flamaFoco;
@@ -29,7 +28,8 @@ void setup()
 
   // WifiMulti aun no esta probado.
   wifiMulti.addAP("E6CA82", "L21503735312143");
-  wifiMulti.addAP("nombre_de_la_red_2", "contraseña_2");
+  // wifiMulti.addAP("MEGACABLE_2.4G_B820", "R4Z5T5y7k8F5p7N5a2a2");
+  wifiMulti.addAP("pruebaesp32", "universidad098");
 
   Serial.print("Conectando a la red WiFi...");
 
@@ -42,33 +42,23 @@ void setup()
   // Setup de los sensores.
   f.luxoSetup();
   // f.humoSetup();
-  // f.flamaSetup();
+  f.flamaSetup();
 }
 
 void loop()
 {
-
+  dataJson = "";
   mqttListen();
+  f.luxoListen();
 
-  luxValue = f.luxoListen();
   delay(100);
+  f.flamaListen();
 
-  // TODO ESTO SERA UN NUEVO METODO DE LA LIBRERIA Focos.h
-  sensData["lux"] = luxValue;
+  serializeJson(jsonArray, dataJson);
 
-  serializeJson(sensData, sensDataJson);
-  client.publish("esliPrueba", sensDataJson.c_str());
+  client.publish("esliPrueba", dataJson.c_str());
 
-  // ESTA VARIABLE DEBE SER LOCAL DEL NUEVO METODO
-  sensDataJson = "";
-  // TERMINA BLOQUE DE NUEVO METODO
-
-  /*
-  humoValue = f.humoListen();
-  delay(100);
-  flamaValue = f.flamaListen();
-  delay(100);
-  */
+  // humoValue = f.humoListen();
 
   delay(2000);
 
