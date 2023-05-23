@@ -1,7 +1,5 @@
 #include "Focos.h"
 #include <WiFiMulti.h>
-#include <vector>
-#include <string>
 
 WiFiMulti wifiMulti;
 
@@ -41,7 +39,7 @@ void setup()
 
   // Setup de los sensores.
   f.luxoSetup();
-  // f.humoSetup();
+  f.humoSetup();
   f.flamaSetup();
 }
 
@@ -54,11 +52,12 @@ void loop()
   delay(100);
   f.flamaListen();
 
+  f.humoListen();
+  delay(100);
+
   serializeJson(jsonArray, dataJson);
 
   client.publish("esliPrueba", dataJson.c_str());
-
-  // humoValue = f.humoListen();
 
   delay(2000);
 

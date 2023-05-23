@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 // Rangos para sensor de Flama
-#define sensorMin 0
+#define sensorMin 80
 #define sensorMax 4095
 
 // PINES sensor-ESP32
@@ -30,7 +30,7 @@ const int mqtt_port = 1883;
 WiFiClient espClient;
 // Este cliente es para el MQTT
 PubSubClient client(espClient);
-DynamicJsonDocument doc(200);
+DynamicJsonDocument doc(400);
 JsonArray jsonArray = doc.to<JsonArray>();
 // Configuracion Mqtt
 class Focos
@@ -38,6 +38,7 @@ class Focos
 private:
   JsonObject luxData = doc.createNestedObject();
   JsonObject flamaData = doc.createNestedObject();
+  JsonObject humoData = doc.createNestedObject();
 
 public:
   // Mqtt
@@ -53,7 +54,7 @@ public:
   bool luxFocoEstado;
   // Humo
   void humoSetup();
-  int humoListen();
+  void humoListen();
   int valorHumo;
   bool humoFocoEstado;
   // Flama
@@ -152,15 +153,15 @@ void Focos::flamaListen()
   this->valorFlama = analogRead(inputFlama);
   Serial.println(this->valorFlama);
 
-  this->range = map(this->valorFlama, sensorMin, sensorMax, 0, 4);
+  this->range = map(this->valorFlama, sensorMax, sensorMin, 0, 3);
   Serial.println(this->range);
   // Serial.println(sensorReading);
   // La sensibilidad del sensor esta muy alta, hay que bajarla y cambiar los valores del range.
   switch (this->range)
   {
   case 0:
-    Serial.println("Fuego");
-    this->flamaFocoEstado = true;
+    Serial.println("No hay fuego");
+    this->flamaFocoEstado = false;
     digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   case 1 || 2:
@@ -169,9 +170,8 @@ void Focos::flamaListen()
     digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   case 3:
-    Serial.println("No hay fuego");
-    // Encender el foco
-    this->flamaFocoEstado = false;
+    Serial.println("Fuego");
+    this->flamaFocoEstado = true;
     digitalWrite(focoFlama, this->flamaFocoEstado);
     break;
   }
@@ -190,21 +190,26 @@ void Focos::humoSetup()
   pinMode(inputHumo, INPUT);
   pinMode(focoHumo, OUTPUT);
 }
-int Focos::humoListen()
+void Focos::humoListen()
 {
 
   this->valorHumo = analogRead(inputHumo);
-  if (this->valorHumo < 100)
+  Serial.println(this->valorHumo);
+  if (this->valorHumo > 1000)
   {
-    digitalWrite(focoHumo, HIGH);
+    humoFocoEstado = true;
+    digitalWrite(focoHumo, humoFocoEstado);
     Serial.println("Humo detectado");
   }
   else
   {
-    digitalWrite(focoHumo, LOW);
+    humoFocoEstado = false;
+    digitalWrite(focoHumo, humoFocoEstado);
     Serial.println("Humo no detectado");
   }
-  return this->valorHumo;
+  this->humoData["name"] = "humo";
+  this->humoData["value"] = this->valorHumo;
+  this->humoData["state"] = this->humoFocoEstado;
 }
 
 // Luxometro
